@@ -1,0 +1,97 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AuctionController;
+use App\Http\Controllers\BidController;
+use App\Http\Controllers\DashboardController;
+
+Route::get('/', [AuctionController::class, 'index'])->name('home');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+});
+
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    
+    // Auction creation (Seller)
+    Route::get('/auctions/create', [AuctionController::class, 'create'])->name('auctions.create');
+    Route::post('/auctions', [AuctionController::class, 'store'])->name('auctions.store');
+    
+    // Bidding (Buyer)
+    Route::post('/auctions/{auction}/bids', [BidController::class, 'store'])->name('bids.store');
+    
+    // Dashboards
+    Route::get('/buyer/dashboard', [DashboardController::class, 'buyer'])->name('dashboard.buyer');
+    Route::get('/seller/dashboard', [DashboardController::class, 'seller'])->name('dashboard.seller');
+    Route::get('/admin/dashboard', [DashboardController::class, 'admin'])->name('dashboard.admin');
+});
+
+// View Auction Details (Open to all)
+Route::get('/auctions/{auction}', [AuctionController::class, 'show'])->name('auctions.show');
+
+// Helper route to run migrations from the browser
+Route::get('/setup-database', function () {
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    return 'Database tables created successfully! <a href="/">Go back to Home</a>';
+});
+
+// Helper route to create test users
+Route::get('/create-test-accounts', function () {
+    \App\Models\User::firstOrCreate(
+        ['email' => 'buyer@gmail.com'],
+        ['name' => 'Test Buyer', 'password' => \Illuminate\Support\Facades\Hash::make('password'), 'role' => 'buyer']
+    );
+    \App\Models\User::firstOrCreate(
+        ['email' => 'seller@gmail.com'],
+        ['name' => 'Test Seller', 'password' => \Illuminate\Support\Facades\Hash::make('password'), 'role' => 'seller']
+    );
+    return '<h3>Accounts Created Successfully!</h3>
+            <p><b>Buyer:</b> buyer@gmail.com <br> <b>Password:</b> password</p>
+            <p><b>Seller:</b> seller@gmail.com <br> <b>Password:</b> password</p>
+            <br><a href="/login" style="padding: 10px; background: #10b981; color: white; text-decoration: none; border-radius: 5px;">Go to Login</a>';
+});
+
+// Helper route to create default categories
+Route::get('/seed-categories', function () {
+    $categories = ['Electronics', 'Art & Collectibles', 'Vehicles', 'Fashion', 'Real Estate', 'Jewelry'];
+    foreach ($categories as $cat) {
+        \App\Models\Category::firstOrCreate(
+            ['slug' => \Illuminate\Support\Str::slug($cat)],
+            ['name' => $cat]
+        );
+    }
+    return '<h3>Categories Created Successfully!</h3>
+            <p>The dropdown is now filled with options.</p>
+            <br><a href="/auctions/create" style="padding: 10px; background: #10b981; color: white; text-decoration: none; border-radius: 5px;">Go back to Create Auction</a>';
+});
+
+// Helper route to serve images without needing storage:link
+Route::get('/storage/{path}', function ($path) {
+    $fullPath = storage_path('app/public/' . $path);
+    if (!file_exists($fullPath)) {
+        abort(404);
+    }
+    
+    // Explicitly set headers to avoid caching issues and serve correctly
+    return response()->file($fullPath, [
+        'Content-Type' => mime_content_type($fullPath),
+        'Cache-Control' => 'no-cache, no-store, must-revalidate',
+        'Pragma' => 'no-cache',
+        'Expires' => '0',
+    ]);
+})->where('path', '.*');
+
+// Ultimate fix for images: run storage:link programmatically
+Route::get('/fix-images', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('storage:link');
+        return '<h3>Images Fixed!</h3><p>The storage link was successfully created.</p><a href="/" style="padding: 10px; background: #10b981; color: white; text-decoration: none; border-radius: 5px;">Go back to Home</a>';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
