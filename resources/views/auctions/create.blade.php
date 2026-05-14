@@ -32,9 +32,14 @@
                 <input type="number" name="starting_price" class="form-control" step="0.01" min="0.01" required>
             </div>
             <div class="form-group" style="flex: 1;">
-                <label class="form-label">End Time</label>
-                <input type="datetime-local" name="end_time" class="form-control" required>
+                <label class="form-label">Buy It Now ($)</label>
+                <input type="number" name="buy_it_now_price" class="form-control" step="0.01" min="0.01" placeholder="Optional">
             </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">End Time</label>
+            <input type="datetime-local" name="end_time" class="form-control" required>
         </div>
         
         <div class="form-group">

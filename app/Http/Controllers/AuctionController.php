@@ -45,7 +45,6 @@ class AuctionController extends Controller
 
     public function create()
     {
-        if (Auth::user()->role !== 'seller') abort(403, 'Unauthorized');
         
         if (Category::count() === 0) {
             $cats = ['Electronics', 'Art & Collectibles', 'Vehicles', 'Fashion', 'Real Estate', 'Jewelry'];
@@ -63,13 +62,13 @@ class AuctionController extends Controller
 
     public function store(Request $request)
     {
-        if (Auth::user()->role !== 'seller') abort(403, 'Unauthorized');
 
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'category_id' => 'required|exists:categories,id',
             'starting_price' => 'required|numeric|min:0.01',
+            'buy_it_now_price' => 'nullable|numeric|min:' . ($request->starting_price + 0.01),
             'end_time' => 'required|date|after:now',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
@@ -85,6 +84,7 @@ class AuctionController extends Controller
             'title' => $request->title,
             'description' => $request->description,
             'starting_price' => $request->starting_price,
+            'buy_it_now_price' => $request->buy_it_now_price,
             'current_price' => $request->starting_price,
             'end_time' => $request->end_time,
             'image_path' => $imagePath,

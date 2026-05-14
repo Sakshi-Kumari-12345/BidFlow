@@ -3,24 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BidFlow - Premium Auctions</title>
+    <title>Relique - Premium Auctions</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 </head>
 <body>
     <nav class="navbar">
-        <a href="{{ route('home') }}" class="navbar-brand">BidFlow</a>
+        <a href="{{ route('home') }}" class="navbar-brand">Relique</a>
         <div class="nav-links">
             <a href="{{ route('home') }}">Auctions</a>
             
             @auth
-                @if(Auth::user()->role === 'seller')
-                    <a href="{{ route('auctions.create') }}" class="btn btn-outline" style="padding: 0.5rem 1rem;">Create Auction</a>
-                    <a href="{{ route('dashboard.seller') }}">Dashboard</a>
-                @elseif(Auth::user()->role === 'buyer')
-                    <a href="{{ route('dashboard.buyer') }}">Dashboard</a>
-                @elseif(Auth::user()->role === 'admin')
+                @if(Auth::user()->role === 'admin')
                     <a href="{{ route('dashboard.admin') }}">Admin</a>
+                @else
+                    <a href="{{ route('auctions.create') }}" class="btn btn-outline" style="padding: 0.5rem 1rem;">Create Auction</a>
+                    <a href="{{ route('dashboard') }}">Dashboard</a>
                 @endif
                 
                 <form action="{{ route('logout') }}" method="POST" style="display:inline;">

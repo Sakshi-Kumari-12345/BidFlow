@@ -8,13 +8,14 @@ class Auction extends Model
 {
     protected $fillable = [
         'seller_id', 'category_id', 'title', 'description', 
-        'starting_price', 'current_price', 'end_time', 'status', 'image_path'
+        'starting_price', 'current_price', 'buy_it_now_price', 'end_time', 'status', 'payment_status', 'image_path'
     ];
 
     protected $casts = [
         'end_time' => 'datetime',
         'starting_price' => 'decimal:2',
         'current_price' => 'decimal:2',
+        'buy_it_now_price' => 'decimal:2',
     ];
 
     public function seller()

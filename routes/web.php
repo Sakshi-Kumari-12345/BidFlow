@@ -5,6 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AuctionController;
 use App\Http\Controllers\BidController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ReviewController;
 
 Route::get('/', [AuctionController::class, 'index'])->name('home');
 
@@ -24,11 +26,19 @@ Route::middleware('auth')->group(function () {
     
     // Bidding (Buyer)
     Route::post('/auctions/{auction}/bids', [BidController::class, 'store'])->name('bids.store');
+    Route::post('/auctions/{auction}/buy-it-now', [BidController::class, 'buyItNow'])->name('bids.buyItNow');
     
     // Dashboards
-    Route::get('/buyer/dashboard', [DashboardController::class, 'buyer'])->name('dashboard.buyer');
-    Route::get('/seller/dashboard', [DashboardController::class, 'seller'])->name('dashboard.seller');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/admin/dashboard', [DashboardController::class, 'admin'])->name('dashboard.admin');
+
+    // Checkout (Stripe)
+    Route::get('/checkout/{auction}', [CheckoutController::class, 'session'])->name('checkout.session');
+    Route::get('/checkout/{auction}/success', [CheckoutController::class, 'success'])->name('checkout.success');
+    Route::get('/checkout/{auction}/cancel', [CheckoutController::class, 'cancel'])->name('checkout.cancel');
+
+    // Reviews
+    Route::post('/auctions/{auction}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 });
 
 // View Auction Details (Open to all)
@@ -94,4 +104,9 @@ Route::get('/fix-images', function () {
     } catch (\Exception $e) {
         return 'Error: ' . $e->getMessage();
     }
+});
+
+Route::get('/debug-db', function () {
+    $auctions = \App\Models\Auction::with('bids.buyer')->get();
+    return response()->json($auctions);
 });

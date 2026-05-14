@@ -23,7 +23,14 @@
             </span>
         </div>
         
-        <p style="color: var(--text-muted); margin-bottom: 2rem;">Sold by: {{ $auction->seller->name ?? 'Unknown' }}</p>
+        @php
+            $avgRating = $auction->seller->reviewsReceived()->avg('rating') ?? 0;
+        @endphp
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">Sold by: {{ $auction->seller->name ?? 'Unknown' }} 
+            @if($avgRating > 0)
+                <span style="color: #fbbf24; margin-left: 0.5rem;">⭐️ {{ number_format($avgRating, 1) }}/5</span>
+            @endif
+        </p>
         
         <div style="background: var(--bg-dark); padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 2rem; text-align: center;">
             <p style="color: var(--text-muted); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 1px;">Current Bid</p>
@@ -38,16 +45,25 @@
 
         @if($auction->status === 'active' && now()->lessThan($auction->end_time))
             @auth
-                @if(Auth::user()->role === 'buyer')
-                    <form action="{{ route('bids.store', $auction) }}" method="POST" style="display: flex; gap: 1rem;">
+                @if($auction->seller_id !== Auth::id())
+                    <form action="{{ route('bids.store', $auction) }}" method="POST" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
                         @csrf
                         <div style="flex: 1;">
                             <input type="number" name="amount" class="form-control" step="0.01" min="{{ $auction->current_price + 0.01 }}" placeholder="Enter bid amount" required>
                         </div>
                         <button type="submit" class="btn btn-primary" style="width: 150px;">Place Bid</button>
                     </form>
+                    
+                    @if($auction->buy_it_now_price)
+                        <form action="{{ route('bids.buyItNow', $auction) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-primary" style="width: 100%; background-color: var(--accent-purple); border-color: var(--accent-purple);">
+                                Buy It Now for ${{ number_format($auction->buy_it_now_price, 2) }}
+                            </button>
+                        </form>
+                    @endif
                 @else
-                    <div class="alert alert-error" style="text-align: center;">Only buyers can place bids.</div>
+                    <div class="alert alert-error" style="text-align: center;">You cannot bid on your own auction.</div>
                 @endif
             @else
                 <div style="text-align: center;">
@@ -55,7 +71,27 @@
                 </div>
             @endauth
         @else
-            <div class="alert alert-error" style="text-align: center;">This auction has ended.</div>
+            <div class="alert alert-error" style="text-align: center; margin-bottom: 1rem;">This auction has ended.</div>
+            @auth
+                @php
+                    $highestBid = $auction->bids()->orderBy('amount', 'desc')->first();
+                    $isWinner = $highestBid && $highestBid->buyer_id === Auth::id();
+                @endphp
+                @if($isWinner)
+                    @if($auction->payment_status !== 'paid')
+                        <div style="text-align: center; margin-top: 1rem;">
+                            <h3 style="color: var(--accent-success); margin-bottom: 1rem;">Congratulations! You won this auction.</h3>
+                            <a href="{{ route('checkout.session', $auction) }}" class="btn btn-primary" style="width: 100%; background-color: var(--accent-success); border-color: var(--accent-success); font-size: 1.1rem; padding: 1rem;">
+                                Pay Now (${{ number_format($auction->current_price, 2) }})
+                            </a>
+                        </div>
+                    @else
+                        <div class="alert alert-success" style="text-align: center; background-color: rgba(16, 185, 129, 0.1); color: var(--accent-success); border: 1px solid var(--accent-success); margin-top: 1rem;">
+                            <strong>Payment Complete!</strong> You have successfully paid for this item.
+                        </div>
+                    @endif
+                @endif
+            @endauth
         @endif
 
         <h3 style="margin-top: 3rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Description</h3>

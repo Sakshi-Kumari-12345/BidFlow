@@ -17,14 +17,6 @@
             <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
             @error('email')<span style="color: var(--accent-alert); font-size: 0.875rem;">{{ $message }}</span>@enderror
         </div>
-        
-        <div class="form-group">
-            <label class="form-label">I want to...</label>
-            <select name="role" class="form-control" required>
-                <option value="buyer">Buy Items (Bidder)</option>
-                <option value="seller">Sell Items (Auctioneer)</option>
-            </select>
-        </div>
 
         <div style="display: flex; gap: 1rem;">
             <div class="form-group" style="flex: 1;">

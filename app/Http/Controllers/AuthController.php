@@ -26,8 +26,7 @@ class AuthController extends Controller
             
             $user = Auth::user();
             if ($user->role === 'admin') return redirect()->intended('admin/dashboard');
-            if ($user->role === 'seller') return redirect()->intended('seller/dashboard');
-            return redirect()->intended('buyer/dashboard');
+            return redirect()->intended('dashboard');
         }
 
         return back()->withErrors([
@@ -46,20 +45,18 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'role' => ['required', 'in:buyer,seller'],
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => $request->role,
+            'role' => 'buyer',
         ]);
 
         Auth::login($user);
 
-        if ($user->role === 'seller') return redirect('seller/dashboard');
-        return redirect('buyer/dashboard');
+        return redirect('dashboard');
     }
 
     public function logout(Request $request)
