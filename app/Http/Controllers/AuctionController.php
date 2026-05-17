@@ -4,17 +4,31 @@ namespace App\Http\Controllers;
 
 use App\Models\Auction;
 use App\Models\Category;
+use App\Models\User;
+use App\Notifications\NewAuctionCreated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class AuctionController extends Controller
 {
     public function index(Request $request)
     {
+        // Lazy-run the command to close expired auctions automatically for local testing
+        \Illuminate\Support\Facades\Artisan::call('auctions:close');
+
         $query = Auction::with('category')->where('status', 'active');
 
         if ($request->filled('category')) {
             $query->where('category_id', $request->category);
+        }
+
+        if ($request->filled('search')) {
+            $searchTerm = '%' . $request->search . '%';
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('title', 'like', $searchTerm)
+                  ->orWhere('description', 'like', $searchTerm);
+            });
         }
 
         if ($request->filled('min_price')) {
@@ -39,6 +53,10 @@ class AuctionController extends Controller
 
     public function show(Auction $auction)
     {
+        // Lazy-run the command to close expired auctions automatically for local testing
+        \Illuminate\Support\Facades\Artisan::call('auctions:close');
+        $auction->refresh(); // Refresh in case this specific auction was closed
+
         $auction->load(['category', 'seller', 'bids.buyer']);
         return view('auctions.show', compact('auction'));
     }
@@ -67,9 +85,9 @@ class AuctionController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'category_id' => 'required|exists:categories,id',
-            'starting_price' => 'required|numeric|min:0.01',
-            'buy_it_now_price' => 'nullable|numeric|min:' . ($request->starting_price + 0.01),
-            'end_time' => 'required|date|after:now',
+            'starting_price' => 'required|numeric|min:0.01|max:99999999',
+            'buy_it_now_price' => 'nullable|numeric|min:' . ($request->starting_price + 0.01) . '|max:99999999',
+            'end_time' => 'required|date|after:now|before:2038-01-01',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
@@ -90,6 +108,10 @@ class AuctionController extends Controller
             'image_path' => $imagePath,
             'status' => 'active'
         ]);
+
+        // Notify all registered users
+        $users = User::all();
+        Notification::send($users, new NewAuctionCreated($auction));
 
         return redirect()->route('auctions.show', $auction)->with('success', 'Auction created successfully!');
     }

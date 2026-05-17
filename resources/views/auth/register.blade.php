@@ -10,18 +10,20 @@
         <div class="form-group">
             <label class="form-label">Full Name</label>
             <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
+            @error('name')<span style="color: var(--accent-alert); font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>@enderror
         </div>
 
         <div class="form-group">
             <label class="form-label">Email Address</label>
             <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
-            @error('email')<span style="color: var(--accent-alert); font-size: 0.875rem;">{{ $message }}</span>@enderror
+            @error('email')<span style="color: var(--accent-alert); font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>@enderror
         </div>
 
         <div style="display: flex; gap: 1rem;">
             <div class="form-group" style="flex: 1;">
                 <label class="form-label">Password</label>
                 <input type="password" name="password" class="form-control" required>
+                @error('password')<span style="color: var(--accent-alert); font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>@enderror
             </div>
             <div class="form-group" style="flex: 1;">
                 <label class="form-label">Confirm</label>

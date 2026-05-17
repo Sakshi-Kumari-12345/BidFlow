@@ -39,10 +39,17 @@ Route::middleware('auth')->group(function () {
 
     // Reviews
     Route::post('/auctions/{auction}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+
+    // Profile Edit
+    Route::get('/profile/edit', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 });
 
 // View Auction Details (Open to all)
 Route::get('/auctions/{auction}', [AuctionController::class, 'show'])->name('auctions.show');
+
+// Public User Profile
+Route::get('/users/{user}', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
 
 // Helper route to run migrations from the browser
 Route::get('/setup-database', function () {

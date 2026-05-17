@@ -11,6 +11,9 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        // Lazy-run the command to close expired auctions automatically for local testing
+        \Illuminate\Support\Facades\Artisan::call('auctions:close');
+
         $bids = Bid::with('auction')->where('buyer_id', Auth::id())->latest()->get();
         $auctions = Auction::where('seller_id', Auth::id())->latest()->get();
         return view('dashboard.index', compact('bids', 'auctions'));

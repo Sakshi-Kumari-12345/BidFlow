@@ -26,7 +26,10 @@
         @php
             $avgRating = $auction->seller->reviewsReceived()->avg('rating') ?? 0;
         @endphp
-        <p style="color: var(--text-muted); margin-bottom: 2rem;">Sold by: {{ $auction->seller->name ?? 'Unknown' }} 
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">Sold by: 
+            <a href="{{ route('profile.show', $auction->seller) }}" style="color: var(--accent-primary); font-weight: 600; text-decoration: none;">
+                {{ $auction->seller->name ?? 'Unknown' }}
+            </a>
             @if($avgRating > 0)
                 <span style="color: #fbbf24; margin-left: 0.5rem;">⭐️ {{ number_format($avgRating, 1) }}/5</span>
             @endif
@@ -54,8 +57,8 @@
                         <button type="submit" class="btn btn-primary" style="width: 150px;">Place Bid</button>
                     </form>
                     
-                    @if($auction->buy_it_now_price)
-                        <form action="{{ route('bids.buyItNow', $auction) }}" method="POST">
+                    @if($auction->buy_it_now_price && $auction->bids->count() === 0)
+                        <form action="{{ route('bids.buyItNow', $auction) }}" method="POST" style="margin-bottom: 1rem;">
                             @csrf
                             <button type="submit" class="btn btn-primary" style="width: 100%; background-color: var(--accent-purple); border-color: var(--accent-purple);">
                                 Buy It Now for ${{ number_format($auction->buy_it_now_price, 2) }}
@@ -78,18 +81,9 @@
                     $isWinner = $highestBid && $highestBid->buyer_id === Auth::id();
                 @endphp
                 @if($isWinner)
-                    @if($auction->payment_status !== 'paid')
-                        <div style="text-align: center; margin-top: 1rem;">
-                            <h3 style="color: var(--accent-success); margin-bottom: 1rem;">Congratulations! You won this auction.</h3>
-                            <a href="{{ route('checkout.session', $auction) }}" class="btn btn-primary" style="width: 100%; background-color: var(--accent-success); border-color: var(--accent-success); font-size: 1.1rem; padding: 1rem;">
-                                Pay Now (${{ number_format($auction->current_price, 2) }})
-                            </a>
-                        </div>
-                    @else
-                        <div class="alert alert-success" style="text-align: center; background-color: rgba(16, 185, 129, 0.1); color: var(--accent-success); border: 1px solid var(--accent-success); margin-top: 1rem;">
-                            <strong>Payment Complete!</strong> You have successfully paid for this item.
-                        </div>
-                    @endif
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <h3 style="color: var(--accent-success); margin-bottom: 1rem;">Congratulations! You won this auction. Please check your email to complete the payment.</h3>
+                    </div>
                 @endif
             @endauth
         @endif
@@ -110,4 +104,41 @@
         </div>
     </div>
 </div>
+
+<!-- Scripts for Real-Time Bidding -->
+@vite(['resources/js/app.js'])
+<script type="module">
+    if (window.Echo) {
+        window.Echo.channel('auction.{{ $auction->id }}')
+            .listen('.bid.placed', (e) => {
+                // Update Current Price Display
+                const priceDiv = document.querySelector('.card-price, div[style*="font-size: 3rem"]');
+                if (priceDiv) {
+                    priceDiv.innerHTML = '$' + e.formatted_amount;
+                    priceDiv.style.color = '#10b981'; // flash green
+                    setTimeout(() => priceDiv.style.color = 'var(--accent-primary)', 1000);
+                }
+
+                // Update Bid History List
+                const historyContainer = document.querySelector('div[style*="max-height: 200px"]');
+                if (historyContainer) {
+                    const noBidsMsg = historyContainer.querySelector('p');
+                    if (noBidsMsg) noBidsMsg.remove();
+
+                    const newBidHtml = `
+                        <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--border-color); background: rgba(16, 185, 129, 0.1); transition: background 1s;">
+                            <span style="color: var(--text-muted);">${e.buyer_name}</span>
+                            <span style="font-weight: 600; color: var(--accent-primary);">$${e.formatted_amount}</span>
+                        </div>
+                    `;
+                    historyContainer.insertAdjacentHTML('afterbegin', newBidHtml);
+                    
+                    // Remove highlight after a second
+                    setTimeout(() => {
+                        historyContainer.firstElementChild.style.background = 'transparent';
+                    }, 1000);
+                }
+            });
+    }
+</script>
 @endsection

@@ -53,6 +53,10 @@ class CheckoutController extends Controller
     public function success(Request $request, Auction $auction)
     {
         $auction->update(['payment_status' => 'paid']);
+        
+        $buyer = Auth::user();
+        \Illuminate\Support\Facades\Mail::to($auction->seller)->send(new \App\Mail\PaymentReceived($auction, $auction->seller, $buyer));
+        
         return redirect()->route('dashboard')->with('success', 'Payment successful! The seller has been notified.');
     }
 

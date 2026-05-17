@@ -5,6 +5,7 @@
     <h1>Live Auctions</h1>
     
     <form action="{{ route('home') }}" method="GET" style="display: flex; gap: 1rem; align-items: center;">
+        <input type="text" name="search" placeholder="Search items..." class="form-control" style="width: 200px;" value="{{ request('search') }}">
         <select name="category" class="form-control" style="width: auto;">
             <option value="">All Categories</option>
             @foreach($categories as $category)

@@ -9,12 +9,13 @@
         <div class="form-group">
             <label class="form-label">Email Address</label>
             <input type="email" name="email" class="form-control" value="{{ old('email') }}" required autofocus>
-            @error('email')<span style="color: var(--accent-alert); font-size: 0.875rem;">{{ $message }}</span>@enderror
+            @error('email')<span style="color: var(--accent-alert); font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>@enderror
         </div>
 
         <div class="form-group">
             <label class="form-label">Password</label>
             <input type="password" name="password" class="form-control" required>
+            @error('password')<span style="color: var(--accent-alert); font-size: 0.875rem; margin-top: 0.25rem; display: block;">{{ $message }}</span>@enderror
         </div>
 
         <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Login</button>

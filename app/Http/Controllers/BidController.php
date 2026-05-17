@@ -21,7 +21,7 @@ class BidController extends Controller
         }
 
         $request->validate([
-            'amount' => ['required', 'numeric', function ($attribute, $value, $fail) use ($auction) {
+            'amount' => ['required', 'numeric', 'max:99999999', function ($attribute, $value, $fail) use ($auction) {
                 if ($value <= $auction->current_price) {
                     $fail('Your bid must be higher than the current price ($' . $auction->current_price . ').');
                 }
@@ -35,9 +35,18 @@ class BidController extends Controller
                 'amount' => $request->amount,
             ]);
 
-            $auction->update(['current_price' => $request->amount]);
+            // Prevent MySQL's ON UPDATE CURRENT_TIMESTAMP from overriding end_time
+            $auction->current_price = $request->amount;
+            DB::table('auctions')
+                ->where('id', $auction->id)
+                ->update([
+                    'current_price' => $request->amount,
+                    'end_time' => DB::raw('end_time'),
+                    'updated_at' => now(),
+                ]);
 
-            // TODO: Broadcast BidPlaced event for WebSockets
+            // Dispatch Event for WebSockets
+            broadcast(new \App\Events\BidPlaced($auction, $bid))->toOthers();
         });
 
         return back()->with('success', 'Bid placed successfully!');
@@ -57,6 +66,10 @@ class BidController extends Controller
             return back()->with('error', 'This auction does not have a Buy It Now price.');
         }
 
+        if ($auction->bids()->count() > 0) {
+            return back()->with('error', 'You cannot use Buy It Now because bids have already been placed on this auction.');
+        }
+
         DB::transaction(function () use ($auction) {
             Bid::create([
                 'auction_id' => $auction->id,
@@ -70,6 +83,8 @@ class BidController extends Controller
                 'status' => 'ended'
             ]);
         });
+
+        \Illuminate\Support\Facades\Mail::to(Auth::user())->send(new \App\Mail\AuctionWon($auction, Auth::user()));
 
         return back()->with('success', 'You successfully bought the item!');
     }
