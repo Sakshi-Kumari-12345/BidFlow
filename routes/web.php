@@ -61,15 +61,15 @@ Route::get('/setup-database', function () {
 Route::get('/create-test-accounts', function () {
     \App\Models\User::firstOrCreate(
         ['email' => 'buyer@gmail.com'],
-        ['name' => 'Test Buyer', 'password' => \Illuminate\Support\Facades\Hash::make('password'), 'role' => 'buyer']
+        ['name' => 'Test Buyer', 'password' => \Illuminate\Support\Facades\Hash::make('password'), 'role' => 'user']
     );
     \App\Models\User::firstOrCreate(
         ['email' => 'seller@gmail.com'],
-        ['name' => 'Test Seller', 'password' => \Illuminate\Support\Facades\Hash::make('password'), 'role' => 'seller']
+        ['name' => 'Test Seller', 'password' => \Illuminate\Support\Facades\Hash::make('password'), 'role' => 'user']
     );
     return '<h3>Accounts Created Successfully!</h3>
-            <p><b>Buyer:</b> buyer@gmail.com <br> <b>Password:</b> password</p>
-            <p><b>Seller:</b> seller@gmail.com <br> <b>Password:</b> password</p>
+            <p><b>User 1:</b> buyer@gmail.com <br> <b>Password:</b> password</p>
+            <p><b>User 2:</b> seller@gmail.com <br> <b>Password:</b> password</p>
             <br><a href="/login" style="padding: 10px; background: #10b981; color: white; text-decoration: none; border-radius: 5px;">Go to Login</a>';
 });
 

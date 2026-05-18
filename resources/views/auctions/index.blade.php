@@ -42,9 +42,14 @@
                     {{ ucfirst($auction->status) }}
                 </span>
                 <h3 class="card-title">{{ $auction->title }}</h3>
-                <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.875rem;">
-                    Category: {{ $auction->category->name ?? 'None' }}
-                </p>
+                <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 1rem;">
+                    <span style="color: var(--text-muted); font-size: 0.875rem;">
+                        Category: {{ $auction->category->name ?? 'None' }}
+                    </span>
+                    <span style="color: var(--text-muted); font-size: 0.875rem;">
+                        Seller: <a href="{{ route('profile.show', $auction->seller) }}" style="color: var(--accent-primary); text-decoration: none;">{{ $auction->seller->name }}</a>
+                    </span>
+                </div>
                 <div class="card-price">${{ number_format($auction->current_price, 2) }}</div>
                 
                 <p style="color: var(--accent-alert); font-weight: 600; margin-bottom: 1.5rem; font-size: 0.875rem;">

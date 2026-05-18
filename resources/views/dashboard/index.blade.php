@@ -6,7 +6,10 @@
         <h1>My Dashboard</h1>
         <p style="color: var(--text-muted);">Welcome back, {{ Auth::user()->name }}! Manage your bids and auctions.</p>
     </div>
-    <a href="{{ route('auctions.create') }}" class="btn btn-primary">Create New Auction</a>
+    <div style="display: flex; gap: 1rem;">
+        <a href="{{ route('profile.edit') }}" class="btn btn-outline">Edit Profile</a>
+        <a href="{{ route('auctions.create') }}" class="btn btn-primary">Create New Auction</a>
+    </div>
 </div>
 
 <div style="display: grid; gap: 2rem;">

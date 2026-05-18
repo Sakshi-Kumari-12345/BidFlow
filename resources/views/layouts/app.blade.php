@@ -19,6 +19,7 @@
                 @else
                     <a href="{{ route('auctions.create') }}" class="btn btn-outline" style="padding: 0.5rem 1rem;">Create Auction</a>
                     <a href="{{ route('dashboard') }}">Dashboard</a>
+                    <a href="{{ route('profile.show', Auth::user()) }}">My Profile</a>
                 @endif
                 
                 <form action="{{ route('logout') }}" method="POST" style="display:inline;">

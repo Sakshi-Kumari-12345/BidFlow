@@ -20,7 +20,7 @@
         </div>
 
         <div class="form-group">
-            <label class="form-label">Bio (Tell buyers about yourself)</label>
+            <label class="form-label">Bio (Tell about yourself)</label>
             <textarea name="bio" class="form-control" rows="5" placeholder="I have been selling vintage electronics for 10 years...">{{ old('bio', $user->bio) }}</textarea>
             @error('bio')<span style="color: var(--accent-alert); font-size: 0.875rem;">{{ $message }}</span>@enderror
         </div>
